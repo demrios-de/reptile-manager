@@ -2,8 +2,8 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { useI18n } from 'vue-i18n'
-import { setLocale, languages } from '@/i18n'
+import { useI18n, setLocale, languages } from '@/i18n'
+
 
 const router = useRouter()
 const auth   = useAuthStore()

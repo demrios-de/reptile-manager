@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
+import { useI18n } from '@/i18n'
 import { animals as animalsApi } from '@/api'
 import { mediaUrl } from '@/utils/media'
 

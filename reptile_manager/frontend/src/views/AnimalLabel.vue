@@ -33,6 +33,7 @@ const cfg = ref({
   show_photo: false,
 
   qr_enabled: true, qr_content: '', qr_position: 'right',
+  qr_target: 'browser',   // 'browser' | 'ha_app' | 'custom'
   export_dpi: 300,
 })
 
@@ -264,14 +265,28 @@ async function downloadPNG() {
   a.click()
 }
 
-function printLabel() {
+function printLabel(onA4 = false) {
   const off = document.createElement('canvas')
+  const mmW = cfg.value.width_mm
+  const mmH = cfg.value.height_mm
   draw(off, 300).then(() => {
-    const win = window.open('', '_blank', 'width=800,height=600')
-    const mmW = cfg.value.width_mm, mmH = cfg.value.height_mm
-    win.document.write(`<!DOCTYPE html><html><head><title>Schild – ${animal.value.name}</title>
-<style>@page{size:${mmW}mm ${mmH}mm;margin:0}body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh}img{width:${mmW}mm;height:${mmH}mm}</style>
-</head><body><img src="${off.toDataURL('image/png')}" /><script>window.onload=()=>{window.print();setTimeout(()=>window.close(),500)}<\/script></body></html>`)
+    const win = window.open('', '_blank', 'width=900,height=700')
+    const dataUrl = off.toDataURL('image/png')
+    const pageCSS = onA4
+      ? `@page{size:A4 portrait;margin:10mm}
+         html,body{width:190mm;margin:0;padding:0;overflow:hidden}
+         .wrap{display:flex;align-items:flex-start;justify-content:flex-start}
+         img{width:${mmW}mm;height:${mmH}mm;display:block}`
+      : `@page{size:${mmW}mm ${mmH}mm;margin:0}
+         html,body{width:${mmW}mm;height:${mmH}mm;margin:0;padding:0;overflow:hidden}
+         img{width:${mmW}mm;height:${mmH}mm;display:block}`
+
+    win.document.write(`<!DOCTYPE html>
+<html><head><title>${animal.value.name}</title>
+<style>*{box-sizing:border-box} ${pageCSS}</style>
+</head><body><div class="wrap"><img src="${dataUrl}"/></div>
+<script>window.onload=function(){setTimeout(function(){window.print();setTimeout(function(){window.close()},800)},400)}<\/script>
+</body></html>`)
     win.document.close()
   })
 }
@@ -288,7 +303,22 @@ const activeSize = computed(() =>
 onMounted(async () => {
   const res = await animalsApi.get(route.params.id)
   animal.value = res.data
-  cfg.value.qr_content = `${window.location.origin}/animals/${res.data.id}`
+
+  const browserUrl = `${window.location.origin}${window.location.pathname.replace(/\/[^/]*$/, '')}/animals/${res.data.id}`
+  const haAppUrl   = `homeassistant://navigate/hassio/ingress/local_reptile_manager#/animals/${res.data.id}`
+
+  // Set initial QR content based on target
+  function syncQr() {
+    if (cfg.value.qr_target === 'browser')  cfg.value.qr_content = browserUrl
+    if (cfg.value.qr_target === 'ha_app')   cfg.value.qr_content = haAppUrl
+  }
+  syncQr()
+
+  // Keep QR content in sync when target changes
+  watch(() => cfg.value.qr_target, (t) => {
+    if (t !== 'custom') syncQr()
+  })
+
   loading.value = false
   await nextTick()
   await updatePreview()
@@ -321,7 +351,8 @@ watch(cfg, updatePreview, { deep: true })
         </p>
         <div class="flex gap-3 mt-4 justify-center flex-wrap">
           <button class="btn-primary btn-sm" @click="downloadPNG">⬇ PNG herunterladen</button>
-          <button class="btn-secondary btn-sm" @click="printLabel">🖨 Drucken</button>
+          <button class="btn-secondary btn-sm" @click="printLabel(false)">🖨 Schildgröße drucken</button>
+          <button class="btn-secondary btn-sm" @click="printLabel(true)">🖨 Auf A4 drucken</button>
         </div>
         <div class="mt-3 flex items-center gap-3 justify-center">
           <span class="text-xs text-slate-500">Auflösung:</span>
@@ -440,8 +471,33 @@ watch(cfg, updatePreview, { deep: true })
               <span class="text-sm">Aktiv</span>
             </label>
           </div>
-          <div v-if="cfg.qr_enabled" class="space-y-2">
-            <div><label>Inhalt</label><input v-model="cfg.qr_content" placeholder="https://…" /></div>
+          <div v-if="cfg.qr_enabled" class="space-y-3">
+            <div>
+              <label>Öffnen in</label>
+              <div class="flex gap-2 mt-1">
+                <button v-for="[val, label] in [['browser','🌐 Browser'],['ha_app','📱 HA App'],['custom','✏ Eigener Link']]"
+                        :key="val" type="button"
+                        class="flex-1 py-1.5 rounded-lg text-xs font-medium border transition-all"
+                        :class="cfg.qr_target === val
+                          ? 'bg-brand-600 border-brand-500 text-white'
+                          : 'bg-surface-600 border-surface-500 text-slate-400 hover:text-slate-200'"
+                        @click="cfg.qr_target = val">
+                  {{ label }}
+                </button>
+              </div>
+              <p class="text-xs text-slate-600 mt-1.5">
+                <template v-if="cfg.qr_target === 'browser'">Öffnet die Tier-Seite im Browser</template>
+                <template v-else-if="cfg.qr_target === 'ha_app'">Öffnet dieses Tier direkt in der HA Companion App</template>
+                <template v-else>Beliebigen Link oder Text eintragen</template>
+              </p>
+            </div>
+            <div v-if="cfg.qr_target === 'custom'">
+              <label>Inhalt</label>
+              <input v-model="cfg.qr_content" placeholder="https://… oder beliebiger Text" />
+            </div>
+            <div v-else class="bg-surface-600 rounded-lg px-3 py-2 text-xs text-slate-400 font-mono break-all">
+              {{ cfg.qr_content }}
+            </div>
           </div>
         </div>
 

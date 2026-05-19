@@ -50,10 +50,6 @@ class AnimalSummary(BaseModel):
 
     model_config = {"from_attributes": True}
 
-class AnimalBulkCreate(BaseModel):
-    """Create multiple animals at once (e.g. from a clutch)."""
-    quantity: int
-    animal_data: "AnimalCreate"
 
 class AnimalBase(BaseModel):
     name: str
@@ -89,6 +85,12 @@ class AnimalBase(BaseModel):
 
 class AnimalCreate(AnimalBase):
     pass
+
+
+class AnimalBulkCreate(BaseModel):
+    """Create multiple animals at once (e.g. from a clutch)."""
+    quantity: int
+    animal_data: "AnimalCreate"
 
 class AnimalUpdate(BaseModel):
     name: Optional[str] = None

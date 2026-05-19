@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { breeding as breedingApi, animals as animalsApi } from '@/api'
 import { bulk } from '@/api'
-import { useI18n } from 'vue-i18n'
+import { useI18n } from '@/i18n'
 
 const { t } = useI18n()
 

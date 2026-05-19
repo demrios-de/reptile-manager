@@ -9,10 +9,17 @@ router = APIRouter()
 
 def _enrich(event: models.BreedingEvent, db: Session) -> schemas.BreedingEventResponse:
     female = db.query(models.Animal).filter(models.Animal.id == event.female_id).first()
-    male = db.query(models.Animal).filter(models.Animal.id == event.male_id).first()
+    male   = db.query(models.Animal).filter(models.Animal.id == event.male_id).first()
+    # Fallback if an animal was deleted
+    if not female:
+        female = models.Animal(id=event.female_id, name=f"[gelöscht #{event.female_id}]",
+                               species="?", sex=models.Sex.unknown, status="inactive")
+    if not male:
+        male   = models.Animal(id=event.male_id,   name=f"[gelöscht #{event.male_id}]",
+                               species="?", sex=models.Sex.unknown, status="inactive")
     data = {k: v for k, v in event.__dict__.items() if not k.startswith("_")}
     data["female"] = schemas.AnimalSummary.model_validate(female)
-    data["male"] = schemas.AnimalSummary.model_validate(male)
+    data["male"]   = schemas.AnimalSummary.model_validate(male)
     return schemas.BreedingEventResponse(**data)
 
 @router.get("/", response_model=List[schemas.BreedingEventResponse])
