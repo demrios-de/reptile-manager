@@ -47,7 +47,7 @@ Ich hab das für mich selbst gebaut, weil mir keine bestehende Lösung gefallen 
 - **Haltungsbedingungen** — Temperatur, Luftfeuchtigkeit, Terrariengröße, Substrat, UV
 - **Stammbaum** — Eltern-Kind-Beziehungen mit visueller Darstellung
 - **Schild-Generator** — druckfertige Schilder (PNG, 300 dpi) inkl. Tierfoto, QR-Code, Haltungsinfos
-- **Herkunftsnachweis** — rechtsgültiges PDF nach § 46 BNatSchG, als Blanko-Version für Börsen
+- **Herkunftsnachweis** — PDF-Nachweis nach § 46 BNatSchG, als Blanko-Version für Börsen
 - **Bestandsexport** — CSV mit allen aktiven Tieren, direkt in Excel öffnen
 - **Home Assistant Integration** — Webhooks, REST-Sensoren, Sidebar-Eintrag
 - **Mehrsprachig** — Deutsch und Englisch, weitere Sprachen einfach ergänzbar
@@ -149,7 +149,7 @@ I built this because I couldn't find anything that was both properly integrated 
 - **Husbandry conditions** — temperature, humidity, enclosure size, substrate, UV
 - **Family tree** — parent-child relationships with visual display
 - **Label generator** — print-ready labels (PNG, 300 dpi) with animal photo and QR code
-- **Origin certificate** — PDF proof of origin per § 46 BNatSchG, blank version for animal fairs
+- **Origin certificate** — PDF document for origin documentation per § 46 BNatSchG, blank version for animal fairs
 - **Inventory export** — CSV with all active animals, opens directly in Excel
 - **Home Assistant integration** — webhooks, REST sensors, sidebar entry
 - **Multilingual** — German and English, more languages easily added
