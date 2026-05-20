@@ -10,7 +10,7 @@ from .database import engine, get_db
 from .database import Base
 from . import models, schemas, auth
 from .config import settings
-from .routers import animals, feedings, sheddings, breeding, custom_fields, ha
+from .routers import animals, feedings, sheddings, breeding, custom_fields, ha, export
 
 UPLOAD_DIR = os.environ.get("UPLOAD_DIR", "/app/uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -43,6 +43,7 @@ app.include_router(sheddings.router,     prefix="/api/sheddings",     tags=["She
 app.include_router(breeding.router,      prefix="/api/breeding",      tags=["Breeding"])
 app.include_router(custom_fields.router, prefix="/api/custom-fields", tags=["Custom Fields"])
 app.include_router(ha.router,            prefix="/api/ha",            tags=["Home Assistant"])
+app.include_router(export.router,        prefix="/api/export",        tags=["export"])
 
 @app.on_event("startup")
 async def startup_event():
@@ -76,7 +77,21 @@ async def startup_event():
             ))
             conn.commit()
         except Exception:
-            pass  # Table may not exist yet — create_all handles it below
+            pass
+        # ha_config migrations
+        try:
+            ha_cols = [c["name"] for c in sa_inspect(engine).get_columns("ha_config")]
+            for col, typedef in [
+                ("breeder_name",     "VARCHAR(200)"),
+                ("breeder_street",   "VARCHAR(200)"),
+                ("breeder_zip_city", "VARCHAR(100)"),
+                ("breeder_phone",    "VARCHAR(50)"),
+            ]:
+                if col not in ha_cols:
+                    conn.execute(text(f"ALTER TABLE ha_config ADD COLUMN {col} {typedef}"))
+            conn.commit()
+        except Exception:
+            pass
     db = next(get_db())
     try:
         if db.query(models.User).count() == 0:

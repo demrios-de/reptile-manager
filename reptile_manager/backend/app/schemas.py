@@ -237,6 +237,10 @@ class HAConfigUpdate(BaseModel):
     notify_shedding: Optional[bool] = None
     notify_breeding: Optional[bool] = None
     feeding_reminder_days: Optional[int] = None
+    breeder_name:     Optional[str] = None
+    breeder_street:   Optional[str] = None
+    breeder_zip_city: Optional[str] = None
+    breeder_phone:    Optional[str] = None
 
 class HAConfigResponse(BaseModel):
     id: int
@@ -247,7 +251,10 @@ class HAConfigResponse(BaseModel):
     notify_shedding: bool
     notify_breeding: bool
     feeding_reminder_days: int
-    # Note: ha_token is never returned for security
+    breeder_name:     Optional[str] = None
+    breeder_street:   Optional[str] = None
+    breeder_zip_city: Optional[str] = None
+    breeder_phone:    Optional[str] = None
 
     model_config = {"from_attributes": True}
 

@@ -151,7 +151,12 @@ class HAConfig(Base):
     notify_feeding = Column(Boolean, default=True)
     notify_shedding = Column(Boolean, default=True)
     notify_breeding = Column(Boolean, default=True)
-    feeding_reminder_days = Column(Integer, default=7)  # days before sending "not fed" alert
+    feeding_reminder_days = Column(Integer, default=7)
+    # Züchter/Verkäufer Profil für Herkunftsnachweise
+    breeder_name     = Column(String(200), nullable=True)
+    breeder_street   = Column(String(200), nullable=True)
+    breeder_zip_city = Column(String(100), nullable=True)
+    breeder_phone    = Column(String(50),  nullable=True)
 
 class User(Base):
     __tablename__ = "users"

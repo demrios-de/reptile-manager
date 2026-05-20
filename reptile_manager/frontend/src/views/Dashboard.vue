@@ -1,8 +1,11 @@
 <script setup>
+import { useI18n } from '@/i18n'
 import { ref, onMounted } from 'vue'
 import { dashboard } from '@/api'
 import { useRouter } from 'vue-router'
 import { mediaUrl } from '@/utils/media'
+
+const { t } = useI18n()
 
 const router = useRouter()
 const stats = ref(null)
@@ -39,7 +42,7 @@ function sexClass(sex) {
 
 <template>
   <div>
-    <h1 class="text-xl md:text-2xl font-bold text-slate-200 mb-5">Dashboard</h1>
+    <h1 class="text-xl md:text-2xl font-bold text-slate-200 mb-5">{{ t('dashboard.title') }}</h1>
 
     <div v-if="loading" class="text-slate-500 text-center py-16">Lade…</div>
 
@@ -50,21 +53,21 @@ function sexClass(sex) {
              @click="router.push('/animals')">
           <span class="text-2xl">🦎</span>
           <span class="text-2xl md:text-3xl font-bold text-slate-200">{{ stats.active_animals }}</span>
-          <span class="text-xs text-slate-500">Aktive Tiere</span>
+          <span class="text-xs text-slate-500">{{ t('dashboard.active_animals') }}</span>
         </div>
 
         <div class="stat-card cursor-pointer hover:border-brand-500 border border-surface-600 transition-colors"
              @click="router.push('/feedings')">
           <span class="text-2xl">🍖</span>
           <span class="text-2xl md:text-3xl font-bold text-slate-200">{{ stats.feedings_this_month }}</span>
-          <span class="text-xs text-slate-500">Fütterungen diesen Monat</span>
+          <span class="text-xs text-slate-500">{{ t('dashboard.feedings_month') }}</span>
         </div>
 
         <div class="stat-card cursor-pointer hover:border-brand-500 border border-surface-600 transition-colors"
              @click="router.push('/sheddings')">
           <span class="text-2xl">🐚</span>
           <span class="text-2xl md:text-3xl font-bold text-slate-200">{{ stats.sheddings_this_month }}</span>
-          <span class="text-xs text-slate-500">Häutungen diesen Monat</span>
+          <span class="text-xs text-slate-500">{{ t('dashboard.sheddings_month') }}</span>
         </div>
 
         <!-- Clickable warning card -->
@@ -79,7 +82,7 @@ function sexClass(sex) {
             {{ stats.animals_not_fed_7days }}
           </span>
           <span class="text-xs text-slate-500">
-            {{ stats.animals_not_fed_7days > 0 ? 'Fütterung überfällig — klicken' : 'Alle gefüttert ✓' }}
+            {{ stats.animals_not_fed_7days > 0 ? t('dashboard.not_fed') + ' — ' + t('dashboard.click_for_details') : t('dashboard.all_fed') }}
           </span>
         </div>
       </div>
@@ -89,10 +92,10 @@ function sexClass(sex) {
         <!-- Recent feedings -->
         <div class="card">
           <div class="flex items-center justify-between mb-3">
-            <h2 class="font-semibold text-slate-200 text-sm md:text-base">Letzte Fütterungen</h2>
-            <button class="text-xs text-brand-400 hover:text-brand-500" @click="router.push('/feedings')">Alle →</button>
+            <h2 class="font-semibold text-slate-200 text-sm md:text-base">{{ t('dashboard.recent_feedings') }}</h2>
+            <button class="text-xs text-brand-400 hover:text-brand-500" @click="router.push('/feedings')">{{ t('common.all') }} →</button>
           </div>
-          <div v-if="!stats.recent_feedings.length" class="text-slate-500 text-sm">Keine Einträge</div>
+          <div v-if="!stats.recent_feedings.length" class="text-slate-500 text-sm">{{ t('common.unknown') }}</div>
           <div v-for="f in stats.recent_feedings" :key="f.id"
                class="flex items-center gap-2 py-2 border-b border-surface-600 last:border-0">
             <div class="flex-1 min-w-0">
@@ -110,10 +113,10 @@ function sexClass(sex) {
         <!-- Recent sheddings -->
         <div class="card">
           <div class="flex items-center justify-between mb-3">
-            <h2 class="font-semibold text-slate-200 text-sm md:text-base">Letzte Häutungen</h2>
-            <button class="text-xs text-brand-400 hover:text-brand-500" @click="router.push('/sheddings')">Alle →</button>
+            <h2 class="font-semibold text-slate-200 text-sm md:text-base">{{ t('dashboard.recent_sheddings') }}</h2>
+            <button class="text-xs text-brand-400 hover:text-brand-500" @click="router.push('/sheddings')">{{ t('common.all') }} →</button>
           </div>
-          <div v-if="!stats.recent_sheddings.length" class="text-slate-500 text-sm">Keine Einträge</div>
+          <div v-if="!stats.recent_sheddings.length" class="text-slate-500 text-sm">{{ t('common.unknown') }}</div>
           <div v-for="s in stats.recent_sheddings" :key="s.id"
                class="flex items-center gap-2 py-2 border-b border-surface-600 last:border-0">
             <div class="flex-1 min-w-0">
@@ -146,7 +149,7 @@ function sexClass(sex) {
             <div class="flex items-center justify-between p-5 border-b border-surface-600">
               <div class="flex items-center gap-2">
                 <span class="text-xl">⚠️</span>
-                <h2 class="font-semibold text-slate-200">Fütterung überfällig</h2>
+                <h2 class="font-semibold text-slate-200">{{ t('dashboard.feeding_modal_title') }}</h2>
               </div>
               <button @click="showFeedingModal = false"
                       class="text-slate-500 hover:text-slate-200 text-xl w-8 h-8 flex items-center justify-center">
@@ -186,8 +189,8 @@ function sexClass(sex) {
                        ? a.days_since_feeding + 'd'
                        : '—' }}
                   </div>
-                  <div class="text-xs text-slate-500">ohne Futter</div>
-                  <div class="text-xs text-slate-600">Schwelle: {{ a.threshold_days }}d</div>
+                  <div class="text-xs text-slate-500">{{ t('dashboard.days_no_food') }}</div>
+                  <div class="text-xs text-slate-600">{{ t('dashboard.threshold') }}: {{ a.threshold_days }}d</div>
                 </div>
               </div>
             </div>
@@ -196,7 +199,7 @@ function sexClass(sex) {
             <div class="p-4 border-t border-surface-600">
               <button class="btn-primary w-full justify-center"
                       @click="showFeedingModal = false; router.push('/feedings')">
-                Zur Fütterungsübersicht →
+                {{ t('dashboard.to_feedings') }}
               </button>
             </div>
           </div>

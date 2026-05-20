@@ -11,7 +11,7 @@ Ein selbst gehostetes Haltungsmanagement-Tool für Reptilien — als Home Assist
 
 Ich hab das für mich selbst gebaut, weil mir keine bestehende Lösung gefallen hat die sowohl in HA integrierbar ist als auch offline läuft. Wer seine Haltung gerne dokumentiert und HA nutzt, wird damit hoffentlich genauso gut klarkommen.
 
-### Installation über HA Add-on Store (empfohlen)
+### Installation (empfohlen)
 
 **Option A — Ein-Klick:**
 
@@ -28,12 +28,6 @@ Ich hab das für mich selbst gebaut, weil mir keine bestehende Lösung gefallen 
 4. Seite neu laden → **Reptile Manager** erscheint im Store
 5. Installieren → Konfigurieren → Starten
 
-### Manuelle Installation (ohne Repository)
-
-1. Dieses Repo als ZIP herunterladen → Ordner `reptile_manager` nach `/addons/` kopieren
-2. HA → Add-on Store → **⋮ → Lokale Add-ons neu laden**
-3. Reptile Manager installieren
-
 ### Konfiguration
 
 | Option | Bedeutung |
@@ -44,15 +38,17 @@ Ich hab das für mich selbst gebaut, weil mir keine bestehende Lösung gefallen 
 
 ### Was es kann
 
-- **Tierverwaltung** — Art, Morph, Geschlecht, Herkunft, Foto, eigene Tiernummer
-- **Fütterungsprotokoll** — Futterart, -größe, Anzahl, live/TK, Akzeptanz
-- **Individuelle Fütterungserinnerung** — Schwellwert pro Tier, deaktivierbar
+- **Tierverwaltung** — Art, Morph, Geschlecht, Herkunft, Foto, eigene Tiernummer (ID)
+- **Fütterungsprotokoll** — Futterart, Größe, Anzahl, live/TK, Akzeptanz
+- **Fütterungserinnerung** — individuelle Warnschwelle pro Tier, deaktivierbar
 - **Häutungsprotokoll** — Vollständigkeit, Blauphase, Notizen
-- **Zucht** — Paare, Eiablage, Gelegegröße; Nachzucht direkt anlegen (auch 50+ Tiere)
+- **Zucht** — Paare, Eiablage, Gelegegröße; Nachzucht direkt anlegen (auch 50+ Tiere auf einmal)
 - **Status** — Aktiv / Inaktiv / Verkauft
 - **Haltungsbedingungen** — Temperatur, Luftfeuchtigkeit, Terrariengröße, Substrat, UV
 - **Stammbaum** — Eltern-Kind-Beziehungen mit visueller Darstellung
-- **Schild-Generator** — druckfertige Schilder (PNG, 300 dpi) inkl. Tierfoto, QR-Code
+- **Schild-Generator** — druckfertige Schilder (PNG, 300 dpi) inkl. Tierfoto, QR-Code, Haltungsinfos
+- **Herkunftsnachweis** — rechtsgültiges PDF nach § 46 BNatSchG, als Blanko-Version für Börsen
+- **Bestandsexport** — CSV mit allen aktiven Tieren, direkt in Excel öffnen
 - **Home Assistant Integration** — Webhooks, REST-Sensoren, Sidebar-Eintrag
 - **Mehrsprachig** — Deutsch und Englisch, weitere Sprachen einfach ergänzbar
 
@@ -87,7 +83,7 @@ template:
 /mnt/data/supervisor/addons/data/local_reptile_manager/
 ├── reptile.db      ← Datenbank
 ├── uploads/        ← Tierfotos
-└── .secret_key     ← JWT-Schlüssel
+└── .secret_key     ← JWT-Schlüssel (auto-generiert)
 ```
 
 Backup:
@@ -96,7 +92,7 @@ cp /mnt/data/supervisor/addons/data/local_reptile_manager/reptile.db \
    ~/reptile-backup-$(date +%Y%m%d).db
 ```
 
-### Neue Sprache hinzufügen
+### Weitere Sprache hinzufügen
 
 Anleitung in [`reptile_manager/frontend/src/i18n/ADDING_LANGUAGES.md`](reptile_manager/frontend/src/i18n/ADDING_LANGUAGES.md)
 
@@ -115,9 +111,9 @@ Issues und PRs willkommen — Anleitung in [CONTRIBUTING.md](.github/CONTRIBUTIN
 
 A self-hosted reptile husbandry management tool — as a Home Assistant Add-on.
 
-I built this because I couldn't find anything that was both properly integrated with HA and worked fully offline. If you like keeping records of your animals and use Home Assistant, this might be useful to you too.
+I built this because I couldn't find anything that was both properly integrated with HA and worked fully offline. If you like keeping detailed records of your animals and use Home Assistant, hopefully this works as well for you as it does for me.
 
-### Installation via HA Add-on Store (recommended)
+### Installation (recommended)
 
 **Option A — One-click:**
 
@@ -134,12 +130,6 @@ I built this because I couldn't find anything that was both properly integrated 
 4. Reload page → **Reptile Manager** appears in the store
 5. Install → Configure → Start
 
-### Manual installation (without repository)
-
-1. Download this repo as ZIP → copy folder `reptile_manager` to `/addons/`
-2. HA → Add-on Store → **⋮ → Reload local add-ons**
-3. Install Reptile Manager
-
 ### Configuration
 
 | Option | Description |
@@ -152,13 +142,15 @@ I built this because I couldn't find anything that was both properly integrated 
 
 - **Animal management** — species, morph, sex, origin, photo, custom tracking ID
 - **Feeding log** — prey type, size, count, live/frozen, acceptance
-- **Individual feeding reminders** — configurable threshold per animal, can be disabled
+- **Feeding reminders** — individual threshold per animal, can be disabled
 - **Shedding log** — completeness, blue phase, notes
-- **Breeding** — pairs, egg laying, clutch size; add offspring directly (50+ at once)
+- **Breeding** — pairs, egg laying, clutch size; add offspring in bulk (50+ at once)
 - **Status** — Active / Inactive / Sold
 - **Husbandry conditions** — temperature, humidity, enclosure size, substrate, UV
 - **Family tree** — parent-child relationships with visual display
 - **Label generator** — print-ready labels (PNG, 300 dpi) with animal photo and QR code
+- **Origin certificate** — PDF proof of origin per § 46 BNatSchG, blank version for animal fairs
+- **Inventory export** — CSV with all active animals, opens directly in Excel
 - **Home Assistant integration** — webhooks, REST sensors, sidebar entry
 - **Multilingual** — German and English, more languages easily added
 
@@ -193,7 +185,7 @@ template:
 /mnt/data/supervisor/addons/data/local_reptile_manager/
 ├── reptile.db      ← database
 ├── uploads/        ← animal photos
-└── .secret_key     ← JWT key
+└── .secret_key     ← JWT key (auto-generated)
 ```
 
 Backup:

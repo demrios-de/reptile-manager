@@ -27,6 +27,7 @@ const navItems = [
   { to: '/feedings',  icon: '🍖', key: 'nav.feedings' },
   { to: '/sheddings', icon: '🐚', key: 'nav.sheddings' },
   { to: '/breeding',  icon: '🥚', key: 'nav.breeding' },
+  { to: '/export',    icon: '📜', key: 'nav.herkunftsnachweis' },
   { to: '/settings',  icon: '⚙️', key: 'nav.settings' },
 ]
 

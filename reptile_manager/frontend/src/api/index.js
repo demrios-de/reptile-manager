@@ -8,7 +8,7 @@ import axios from 'axios'
  *  2. import.meta.env.VITE_API_URL — set at Vite build time (docker-compose)
  *  3. Auto-detect from HA Ingress pathname
  */
-function buildBaseURL() {
+export function buildBaseURL() {
   // 1. Runtime config written by run.sh
   if (window.__REPTILE_API__) return window.__REPTILE_API__
 
@@ -87,4 +87,12 @@ export default api
 export const bulk = {
   createAnimals: (quantity, animalData) =>
     api.post('/animals/bulk', { quantity, animal_data: animalData })
+}
+
+// ── Export ────────────────────────────────────────────────────────────────────
+export const exportApi = {
+  inventory: () =>
+    api.get('/export/inventory', { responseType: 'blob' }),
+  herkunftsnachweis: (data) =>
+    api.post('/export/herkunftsnachweis', data, { responseType: 'blob' }),
 }

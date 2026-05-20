@@ -50,3 +50,36 @@ def get_current_user(
     if user is None or not user.is_active:
         raise exc
     return user
+
+
+oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/api/auth/token", auto_error=False)
+
+def get_current_user_optional(
+    token: Optional[str] = Depends(oauth2_scheme_optional),
+    db: Session = Depends(get_db),
+) -> Optional[models.User]:
+    """Like get_current_user but returns None instead of raising 401."""
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+        username: str = payload.get("sub")
+        if username is None:
+            return None
+        user = db.query(models.User).filter(models.User.username == username).first()
+        return user if user and user.is_active else None
+    except JWTError:
+        return None
+
+
+def get_user_from_token(token: str, db: Session) -> Optional[models.User]:
+    """Validate a raw token string (e.g. from ?token= query param)."""
+    try:
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+        username: str = payload.get("sub")
+        if not username:
+            return None
+        user = db.query(models.User).filter(models.User.username == username).first()
+        return user if user and user.is_active else None
+    except JWTError:
+        return None

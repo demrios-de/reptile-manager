@@ -129,6 +129,7 @@ async function deleteCustomField(id) {
       <div class="flex gap-2">
         <button class="btn-secondary btn-sm" @click="router.push(`/animals/${animal.id}/tree`)">🌳 Stammbaum</button>
         <button class="btn-secondary btn-sm" @click="router.push(`/animals/${animal.id}/label`)">🏷 Schild</button>
+        <button class="btn-secondary btn-sm" @click="router.push(`/export?ids=${animal.id}`)">📜 Herkunftsnachweis</button>
         <button class="btn-secondary btn-sm" @click="router.push(`/animals/${animal.id}/edit`)">✏️ Bearbeiten</button>
       </div>
     </div>

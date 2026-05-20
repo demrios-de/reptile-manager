@@ -1,6 +1,9 @@
 <script setup>
+import { useI18n } from '@/i18n'
 import { ref, onMounted, watch } from 'vue'
 import { sheddings as sheddingsApi, animals as animalsApi } from '@/api'
+
+const { t } = useI18n()
 
 const list = ref([])
 const allAnimals = ref([])
@@ -46,7 +49,7 @@ async function addShedding() {
 }
 
 async function deleteShedding(id) {
-  if (!confirm('Häutung löschen?')) return
+  if (!confirm(t('shedding.confirmDelete'))) return
   await sheddingsApi.delete(id)
   list.value = list.value.filter(s => s.id !== id)
 }
@@ -59,29 +62,29 @@ function fmtDate(d) {
 <template>
   <div>
     <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-      <h1 class="text-2xl font-bold text-slate-200">Häutungen</h1>
-      <button class="btn-primary btn-sm" @click="showForm = !showForm">+ Häutung eintragen</button>
+      <h1 class="text-2xl font-bold text-slate-200">{{ t('shedding.title') }}</h1>
+      <button class="btn-primary btn-sm" @click="showForm = !showForm">+ {{ t('shedding.add') }}</button>
     </div>
 
     <div class="mb-5">
       <select v-model="filterAnimal" class="max-w-xs">
-        <option value="">Alle Tiere</option>
+        <option value="">{{ t('common.all') }}</option>
         <option v-for="a in allAnimals" :key="a.id" :value="a.id">{{ a.name }}</option>
       </select>
     </div>
 
     <div v-if="showForm" class="card mb-5">
-      <h3 class="font-medium text-slate-200 mb-3">Neue Häutung</h3>
+      <h3 class="font-medium text-slate-200 mb-3">{{ t('shedding.add') }}</h3>
       <form @submit.prevent="addShedding" class="grid sm:grid-cols-2 gap-3">
         <div>
-          <label>Tier *</label>
+          <label>{{ t('feeding.animal') }} *</label>
           <select v-model="form.animal_id" required>
-            <option value="">Tier wählen…</option>
+            <option value="">{{ t('feeding.animal') }}…</option>
             <option v-for="a in allAnimals.filter(a => a.is_active)" :key="a.id" :value="a.id">{{ a.name }}</option>
           </select>
         </div>
-        <div><label>Datum & Zeit</label><input type="datetime-local" v-model="form.date" required /></div>
-        <div><label>Tage in der Blauphase</label><input type="number" v-model="form.pre_shed_days" min="0" placeholder="7" /></div>
+        <div><label>{{ t('shedding.date') }}</label><input type="datetime-local" v-model="form.date" required /></div>
+        <div><label>{{ t('shedding.pre_shed_days') }}</label><input type="number" v-model="form.pre_shed_days" min="0" placeholder="7" /></div>
         <div class="flex gap-5 items-end pb-2">
           <label class="flex items-center gap-2 cursor-pointer text-sm">
             <input type="checkbox" v-model="form.complete" class="w-4 h-4" /> Komplett
@@ -90,25 +93,25 @@ function fmtDate(d) {
             <input type="checkbox" v-model="form.in_one_piece" class="w-4 h-4" /> In einem Stück
           </label>
         </div>
-        <div class="sm:col-span-2"><label>Notizen</label><textarea v-model="form.notes" rows="2" /></div>
+        <div class="sm:col-span-2"><label>{{ t('shedding.notes') }}</label><textarea v-model="form.notes" rows="2" /></div>
         <div class="sm:col-span-2 flex gap-2">
-          <button type="submit" class="btn-primary btn-sm" :disabled="saving">{{ saving ? 'Speichern…' : 'Eintragen' }}</button>
-          <button type="button" class="btn-secondary btn-sm" @click="showForm = false">Abbrechen</button>
+          <button type="submit" class="btn-primary btn-sm" :disabled="saving">{{ saving ? t('common.saving') : t('shedding.add') }}</button>
+          <button type="button" class="btn-secondary btn-sm" @click="showForm = false">{{ t('common.cancel') }}</button>
         </div>
       </form>
     </div>
 
     <div class="card overflow-x-auto -mx-1">
-      <div v-if="loading" class="text-slate-500 text-center py-8">Lade…</div>
-      <div v-else-if="!list.length" class="text-slate-500 text-center py-8">Keine Häutungen gefunden</div>
+      <div v-if="loading" class="text-slate-500 text-center py-8">{{ t('common.loading') }}</div>
+      <div v-else-if="!list.length" class="text-slate-500 text-center py-8">{{ t('shedding.noEntries') }}</div>
       <table v-else class="w-full text-sm">
         <thead>
           <tr class="text-left text-slate-500 border-b border-surface-600">
-            <th class="pb-2 pr-4">Tier</th>
-            <th class="pb-2 pr-4">Datum</th>
-            <th class="pb-2 pr-4">Blauphase</th>
+            <th class="pb-2 pr-4">{{ t('feeding.animal') }}</th>
+            <th class="pb-2 pr-4">{{ t('shedding.date') }}</th>
+            <th class="pb-2 pr-4">{{ t('shedding.pre_shed_days') }}</th>
             <th class="pb-2 pr-4">Status</th>
-            <th class="pb-2 pr-4">Notiz</th>
+            <th class="pb-2 pr-4">{{ t('shedding.notes') }}</th>
             <th class="pb-2"></th>
           </tr>
         </thead>
@@ -119,9 +122,9 @@ function fmtDate(d) {
             <td class="py-2 pr-4 text-slate-400">{{ s.pre_shed_days != null ? `${s.pre_shed_days} Tage` : '—' }}</td>
             <td class="py-2 pr-4">
               <span :class="s.complete ? 'badge-green' : 'badge-yellow'" class="mr-1">
-                {{ s.complete ? 'Komplett' : 'Unvollständig' }}
+                {{ s.complete ? t('shedding.complete_label') : t('shedding.incomplete_label') }}
               </span>
-              <span v-if="!s.in_one_piece" class="badge-red">Gerissen</span>
+              <span v-if="!s.in_one_piece" class="badge-red">{{ t('shedding.torn') }}</span>
             </td>
             <td class="py-2 pr-4 text-slate-500 max-w-[150px] truncate">{{ s.notes }}</td>
             <td class="py-2">

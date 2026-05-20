@@ -1,8 +1,11 @@
 <script setup>
+import { useI18n } from '@/i18n'
 import { ref, watch, onMounted } from 'vue'
 import { mediaUrl } from '@/utils/media'
 import { useRouter } from 'vue-router'
 import { animals as animalsApi } from '@/api'
+
+const { t } = useI18n()
 
 const router = useRouter()
 const list = ref([])
@@ -31,7 +34,7 @@ function sexClass(sex) {
 }
 
 async function deleteAnimal(id) {
-  if (!confirm('Tier wirklich löschen?')) return
+  if (!confirm(t('animal.confirmDelete'))) return
   await animalsApi.delete(id)
   load()
 }
@@ -45,10 +48,10 @@ async function deleteAnimal(id) {
       <div class="flex gap-3">
         <label class="flex items-center gap-2 text-sm text-slate-400 cursor-pointer">
           <input type="checkbox" v-model="showInactive" class="w-4 h-4" />
-          Inaktive zeigen
+          {{ t('animal.showInactive') }}
         </label>
         <button class="btn-primary btn-sm" @click="router.push('/animals/new')">
-          + Tier hinzufügen
+          + {{ t('animal.add') }}
         </button>
       </div>
     </div>
@@ -62,8 +65,8 @@ async function deleteAnimal(id) {
 
     <div v-else-if="!list.length" class="text-center py-16 text-slate-500">
       <div class="text-4xl mb-3">🦎</div>
-      <p>Noch keine Tiere angelegt.</p>
-      <button class="btn-primary mt-4" @click="router.push('/animals/new')">Erstes Tier hinzufügen</button>
+      <p>{{ t('animal.noAnimals') }}</p>
+      <button class="btn-primary mt-4" @click="router.push('/animals/new')">{{ t('animal.add') }}</button>
     </div>
 
     <!-- Grid -->
@@ -98,9 +101,10 @@ async function deleteAnimal(id) {
           <button class="btn-secondary btn-sm flex-1 text-xs" @click="router.push(`/animals/${a.id}/edit`)">
             Bearbeiten
           </button>
-          <button class="btn-secondary btn-sm text-xs" @click="router.push(`/animals/${a.id}/tree`)">
-            🌳
-          </button>
+          <button class="btn-secondary btn-sm text-xs" @click="router.push(`/animals/${a.id}/tree`)"
+                  title="Stammbaum">🌳</button>
+          <button class="btn-secondary btn-sm text-xs" @click="router.push(`/export?ids=${a.id}`)"
+                  title="Herkunftsnachweis">📜</button>
           <button class="btn-danger btn-sm text-xs" @click="deleteAnimal(a.id)">
             🗑
           </button>

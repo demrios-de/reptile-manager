@@ -19,6 +19,7 @@ const routes = [
       { path: 'feedings',  component: () => import('@/views/FeedingLog.vue') },
       { path: 'sheddings', component: () => import('@/views/SheddingLog.vue') },
       { path: 'breeding',  component: () => import('@/views/Breeding.vue') },
+      { path: 'export',    component: () => import('@/views/Export.vue') },
       { path: 'settings',  component: () => import('@/views/Settings.vue') },
     ]
   }
