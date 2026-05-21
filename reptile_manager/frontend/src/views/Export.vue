@@ -107,6 +107,13 @@ async function downloadHkn() {
   } finally { genHkn.value = false }
 }
 
+
+function sexNotation(sex) {
+  if (sex === 'male')   return '1.0.0'
+  if (sex === 'female') return '0.1.0'
+  return '0.0.1'
+}
+
 function sexIcon(sex) {
   return sex === 'male' ? '♂' : sex === 'female' ? '♀' : '?'
 }
@@ -156,7 +163,7 @@ function sexClass(sex) {
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-1.5">
                   <span class="text-sm font-medium text-slate-200 truncate">{{ a.name }}</span>
-                  <span :class="sexClass(a.sex)" class="text-sm flex-shrink-0">{{ sexIcon(a.sex) }}</span>
+                  <span :class="sexClass(a.sex)" class="text-sm flex-shrink-0">{{ sexNotation(a.sex) }}</span>
                 </div>
                 <p class="text-xs text-slate-500 italic truncate">{{ a.species }}</p>
               </div>

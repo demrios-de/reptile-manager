@@ -108,6 +108,13 @@ async function deleteCustomField(id) {
   await customFields.delete(id)
   customFieldList.value = customFieldList.value.filter(f => f.id !== id)
 }
+
+function sexNotation(sex) {
+  if (sex === 'male')   return '1.0.0'
+  if (sex === 'female') return '0.1.0'
+  return '0.0.1'
+}
+
 </script>
 
 <template>
@@ -120,7 +127,7 @@ async function deleteCustomField(id) {
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-3 flex-wrap">
           <h1 class="text-2xl font-bold text-slate-200">{{ animal.name }}</h1>
-          <span class="badge-gray">{{ animal.sex === 'male' ? '♂ Männlich' : animal.sex === 'female' ? '♀ Weiblich' : '? Unbekannt' }}</span>
+          <span class="badge-gray">{{ sexNotation(animal.sex) }}</span>
           <span v-if="!animal.is_active" class="badge-red">Inaktiv</span>
         </div>
         <p class="text-slate-400 italic">{{ animal.species }}<span v-if="animal.common_name"> · {{ animal.common_name }}</span></p>
@@ -162,13 +169,13 @@ async function deleteCustomField(id) {
       <div class="flex gap-4 flex-wrap">
         <div v-if="animal.mother" class="flex items-center gap-2 cursor-pointer hover:text-brand-400 transition-colors"
              @click="router.push(`/animals/${animal.mother.id}`)">
-          <span class="text-pink-400 font-bold">♀</span>
+          <span class="text-slate-400 font-mono text-xs">0.1.0</span>
           <span class="text-sm">{{ animal.mother.name }}</span>
           <span class="text-xs text-slate-500">{{ animal.mother.morph ?? animal.mother.species }}</span>
         </div>
         <div v-if="animal.father" class="flex items-center gap-2 cursor-pointer hover:text-brand-400 transition-colors"
              @click="router.push(`/animals/${animal.father.id}`)">
-          <span class="text-blue-400 font-bold">♂</span>
+          <span class="text-slate-400 font-mono text-xs">1.0.0</span>
           <span class="text-sm">{{ animal.father.name }}</span>
           <span class="text-xs text-slate-500">{{ animal.father.morph ?? animal.father.species }}</span>
         </div>

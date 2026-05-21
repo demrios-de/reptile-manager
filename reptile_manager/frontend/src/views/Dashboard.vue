@@ -32,6 +32,13 @@ function fmtDateTime(d) {
 function foodLabel(f) {
   return [f.food_count > 1 ? `${f.food_count}×` : '', f.food_size, f.food_type].filter(Boolean).join(' ')
 }
+
+function sexNotation(sex) {
+  if (sex === 'male')   return '1.0.0'
+  if (sex === 'female') return '0.1.0'
+  return '0.0.1'
+}
+
 function sexIcon(sex) {
   return sex === 'male' ? '♂' : sex === 'female' ? '♀' : '?'
 }
@@ -175,7 +182,7 @@ function sexClass(sex) {
                   <div class="flex items-center gap-1.5">
                     <span class="font-medium text-slate-200 truncate">{{ a.name }}</span>
                     <span :class="sexClass(a.sex)" class="text-sm font-bold flex-shrink-0">
-                      {{ sexIcon(a.sex) }}
+                      {{ sexNotation(a.sex) }}
                     </span>
                   </div>
                   <p class="text-xs text-slate-500 italic truncate">{{ a.species }}</p>

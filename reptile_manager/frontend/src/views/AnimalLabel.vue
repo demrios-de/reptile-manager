@@ -213,7 +213,7 @@ async function draw(canvas, dpi) {
   ctx.fillStyle = c.text_color + 'aa'
   const lines = []
 
-  if (c.show_sex)    lines.push(a.sex === 'male' ? '♂ Männlich' : a.sex === 'female' ? '♀ Weiblich' : '? Unbekannt')
+  if (c.show_sex)    lines.push(a.sex === 'male' ? '1.0.0' : a.sex === 'female' ? '0.1.0' : '0.0.1')
   if (c.show_dob && a.date_of_birth) lines.push(`* ${new Date(a.date_of_birth).toLocaleDateString('de-DE')}`)
   if (c.show_weight && a.weight_g)   lines.push(`⚖ ${a.weight_g}g`)
 
@@ -325,6 +325,13 @@ onMounted(async () => {
 })
 
 watch(cfg, updatePreview, { deep: true })
+
+function sexNotation(sex) {
+  if (sex === 'male')   return '1.0.0'
+  if (sex === 'female') return '0.1.0'
+  return '0.0.1'
+}
+
 </script>
 
 <template>

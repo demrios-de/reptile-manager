@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.2.1] – 2025-06-03
+
+### Changed
+- Sex display now uses standard reptile/spider notation (1.0.0 / 0.1.0 / 0.0.1) everywhere: animal list cards, animal detail, breeding overview, family tree, and label canvas
+- Form dropdowns keep readable text labels (Male/Female/Unknown) for usability
+
+### Fixed
+- `panel_admin` set to `false` — sidebar entry now visible to all HA users, not just admins
+- Label canvas still showed ♂/♀ symbols instead of numeric notation
+- Sex symbols in breeding cards, animal detail parent section and family tree not updated
+
+---
+
 ## [1.2.0] – 2025-06-02
 
 ### Added

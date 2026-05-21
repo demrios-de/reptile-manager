@@ -15,7 +15,7 @@ onMounted(async () => {
 })
 
 function sexIcon(sex) {
-  return sex === 'male' ? '♂' : sex === 'female' ? '♀' : '?'
+  return sex === 'male' ? '1.0.0' : sex === 'female' ? '0.1.0' : '?'
 }
 function sexClass(sex) {
   return sex === 'male' ? 'text-blue-400' : sex === 'female' ? 'text-pink-400' : 'text-slate-500'
@@ -39,8 +39,8 @@ function hasParents(node) {
 
       <!-- Legend -->
       <div class="flex gap-4 mb-6 text-xs text-slate-500">
-        <span class="flex items-center gap-1"><span class="text-pink-400 font-bold">♀</span> Weiblich</span>
-        <span class="flex items-center gap-1"><span class="text-blue-400 font-bold">♂</span> Männlich</span>
+        <span class="flex items-center gap-1"><span class="font-mono text-xs text-slate-400">0.1.0</span></span>
+        <span class="flex items-center gap-1"><span class="font-mono text-xs text-slate-400">1.0.0</span></span>
         <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-brand-500 inline-block"></span> Ausgewähltes Tier</span>
       </div>
 

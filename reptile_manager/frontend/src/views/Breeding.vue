@@ -201,9 +201,9 @@ const females = () => allAnimals.value.filter(a => a.sex !== 'male')
           <div>
             <div class="flex items-center gap-3 flex-wrap">
               <span class="font-semibold text-slate-200">
-                <span class="text-pink-400">♀ {{ e.female.name }}</span>
+                <span class="text-slate-300"><span class="text-slate-500 font-mono text-xs">0.1.0</span> {{ e.female.name }}</span>
                 <span class="text-slate-500 mx-2">×</span>
-                <span class="text-blue-400">♂ {{ e.male.name }}</span>
+                <span class="text-slate-300"><span class="text-slate-500 font-mono text-xs">1.0.0</span> {{ e.male.name }}</span>
               </span>
               <span v-if="e.success === true" class="badge-green">{{ t('breeding.successLabels.true') }}</span>
               <span v-else-if="e.success === false" class="badge-red">{{ t('breeding.successLabels.false') }}</span>

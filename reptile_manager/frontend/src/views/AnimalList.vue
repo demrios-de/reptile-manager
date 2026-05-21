@@ -26,6 +26,13 @@ async function load() {
 onMounted(load)
 watch([search, showInactive], load)
 
+
+function sexNotation(sex) {
+  if (sex === 'male')   return '1.0.0'
+  if (sex === 'female') return '0.1.0'
+  return '0.0.1'
+}
+
 function sexIcon(sex) {
   return sex === 'male' ? '♂' : sex === 'female' ? '♀' : '?'
 }
@@ -88,7 +95,7 @@ async function deleteAnimal(id) {
           <div class="min-w-0">
             <div class="flex items-center gap-1.5">
               <span class="font-semibold text-slate-200 truncate">{{ a.name }}</span>
-              <span :class="sexClass(a.sex)" class="text-sm font-bold">{{ sexIcon(a.sex) }}</span>
+              <span :class="sexClass(a.sex)" class="text-sm font-bold">{{ sexNotation(a.sex) }}</span>
             </div>
             <p class="text-xs text-slate-500 italic truncate">{{ a.species }}</p>
             <p v-if="a.morph" class="text-xs text-brand-400 truncate">{{ a.morph }}</p>
