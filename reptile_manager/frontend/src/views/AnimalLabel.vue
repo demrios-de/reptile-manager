@@ -1,8 +1,11 @@
 <script setup>
+import { useI18n } from '@/i18n'
 import { ref, onMounted, watch, nextTick, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { animals as animalsApi } from '@/api'
 import { mediaUrl } from '@/utils/media'
+
+const { t } = useI18n()
 
 const route  = useRoute()
 const router = useRouter()
@@ -43,18 +46,18 @@ const SIZE_PRESETS = [
   { label: '50×30',   w: 50,  h: 30  },
   { label: '70×42',   w: 70,  h: 42  },
   { label: '100×60',  w: 100, h: 60  },
-  { label: 'A6 quer', w: 148, h: 105 },
+  { label: t('label.a6_landscape'), w: 148, h: 105 },
 ]
 
 const COLOR_PRESETS = [
-  { label: 'Dunkel/Grün',  bg: '#1e2433', text: '#f1f5f9', accent: '#4ade80', border: '#4ade80' },
-  { label: 'Dunkel/Blau',  bg: '#1e2433', text: '#f1f5f9', accent: '#60a5fa', border: '#60a5fa' },
-  { label: 'Dunkel/Orange',bg: '#1a0f00', text: '#fde68a', accent: '#f97316', border: '#f97316' },
-  { label: 'Schwarz/Gold', bg: '#070707', text: '#fbbf24', accent: '#fbbf24', border: '#a16207' },
-  { label: 'Weiß/Grün',   bg: '#ffffff', text: '#1e293b', accent: '#16a34a', border: '#16a34a' },
-  { label: 'Weiß/Lila',   bg: '#faf5ff', text: '#1e293b', accent: '#9333ea', border: '#9333ea' },
-  { label: 'Weiß/Schwarz',bg: '#ffffff', text: '#111111', accent: '#111111', border: '#374151' },
-  { label: 'Natur/Braun', bg: '#fefce8', text: '#3d1f00', accent: '#854d0e', border: '#a16207' },
+  { label: t('label.dark_green'),  bg: '#1e2433', text: '#f1f5f9', accent: '#4ade80', border: '#4ade80' },
+  { label: t('label.dark_blue'),  bg: '#1e2433', text: '#f1f5f9', accent: '#60a5fa', border: '#60a5fa' },
+  { label: t('label.dark_orange'),bg: '#1a0f00', text: '#fde68a', accent: '#f97316', border: '#f97316' },
+  { label: t('label.black_gold'), bg: '#070707', text: '#fbbf24', accent: '#fbbf24', border: '#a16207' },
+  { label: t('label.white_green'),   bg: '#ffffff', text: '#1e293b', accent: '#16a34a', border: '#16a34a' },
+  { label: t('label.white_purple'),   bg: '#faf5ff', text: '#1e293b', accent: '#9333ea', border: '#9333ea' },
+  { label: t('label.white_black'),bg: '#ffffff', text: '#111111', accent: '#111111', border: '#374151' },
+  { label: t('label.nature_brown'), bg: '#fefce8', text: '#3d1f00', accent: '#854d0e', border: '#a16207' },
 ]
 
 const MM = 25.4
@@ -230,7 +233,7 @@ async function draw(canvas, dpi) {
   if (c.show_terrarium && a.terrarium_size) lines.push(`📦 ${a.terrarium_size}`)
   if (c.show_substrate && a.substrate)      lines.push(`🌱 ${a.substrate}`)
   if (c.show_uv && a.uv_required !== null && a.uv_required !== undefined) {
-    lines.push(a.uv_required ? '☀ UV benötigt' : '🚫 Kein UV')
+    lines.push(a.uv_required ? t('animal.uv') : '🚫 ' + t('common.no') + ' UV')
   }
   if (c.custom_line1) lines.push(c.custom_line1)
   if (c.custom_line2) lines.push(c.custom_line2)
@@ -337,8 +340,8 @@ function sexNotation(sex) {
 <template>
   <div>
     <div class="flex items-center gap-3 mb-5 flex-wrap">
-      <button class="btn-secondary btn-sm" @click="router.back()">← Zurück</button>
-      <h1 class="text-xl md:text-2xl font-bold text-slate-200">Schild / Label</h1>
+      <button class="btn-secondary btn-sm" @click="router.back()">{{ t('common.back') }}</button>
+      <h1 class="text-xl md:text-2xl font-bold text-slate-200">{{ t('label.title') }}</h1>
       <span v-if="animal" class="text-slate-500 text-sm">{{ animal.name }}</span>
     </div>
 
@@ -348,21 +351,21 @@ function sexNotation(sex) {
 
       <!-- Preview -->
       <div class="card">
-        <h2 class="font-semibold text-slate-300 mb-4 text-sm">Vorschau</h2>
+        <h2 class="font-semibold text-slate-300 mb-4 text-sm">{{ t('label.preview') }}</h2>
         <div class="bg-[#080808] rounded-xl p-4 md:p-6 flex items-center justify-center min-h-[160px] relative">
-          <div v-if="rendering" class="absolute inset-0 flex items-center justify-center text-slate-600 text-sm">Rendern…</div>
+          <div v-if="rendering" class="absolute inset-0 flex items-center justify-center text-slate-600 text-sm">{{ t('label.rendering') }}</div>
           <canvas ref="canvasRef" class="rounded shadow-2xl block" />
         </div>
         <p class="text-center text-xs text-slate-600 mt-2">
           {{ cfg.width_mm }}×{{ cfg.height_mm }} mm · {{ cfg.export_dpi }} dpi · {{ exportSize }}
         </p>
         <div class="flex gap-3 mt-4 justify-center flex-wrap">
-          <button class="btn-primary btn-sm" @click="downloadPNG">⬇ PNG herunterladen</button>
-          <button class="btn-secondary btn-sm" @click="printLabel(false)">🖨 Schildgröße drucken</button>
-          <button class="btn-secondary btn-sm" @click="printLabel(true)">🖨 Auf A4 drucken</button>
+          <button class="btn-primary btn-sm" @click="downloadPNG">⬇ {{ t('label.download_png') }}</button>
+          <button class="btn-secondary btn-sm" @click="printLabel(false)">🖨 {{ t('label.print_exact') }}</button>
+          <button class="btn-secondary btn-sm" @click="printLabel(true)">🖨 {{ t('label.print_a4') }}</button>
         </div>
         <div class="mt-3 flex items-center gap-3 justify-center">
-          <span class="text-xs text-slate-500">Auflösung:</span>
+          <span class="text-xs text-slate-500">{{ t('label.dpi') }}:</span>
           <select v-model.number="cfg.export_dpi" class="w-36 text-sm py-1">
             <option :value="150">150 dpi</option>
             <option :value="300">300 dpi (Druck)</option>
@@ -376,7 +379,7 @@ function sexNotation(sex) {
 
         <!-- Size -->
         <div class="card">
-          <h3 class="cfg-h">📐 Größe</h3>
+          <h3 class="cfg-h">📐 {{ t('label.size') }}</h3>
           <div class="flex flex-wrap gap-1.5 mb-3">
             <button v-for="p in SIZE_PRESETS" :key="p.label"
               class="btn-secondary btn-sm text-xs"
@@ -386,14 +389,14 @@ function sexNotation(sex) {
             </button>
           </div>
           <div class="grid grid-cols-2 gap-3">
-            <div><label>Breite (mm)</label><input type="number" v-model.number="cfg.width_mm" min="20" max="500" /></div>
-            <div><label>Höhe (mm)</label><input type="number" v-model.number="cfg.height_mm" min="10" max="500" /></div>
+            <div><label>{{ t('label.width_mm') }}</label><input type="number" v-model.number="cfg.width_mm" min="20" max="500" /></div>
+            <div><label>{{ t('label.height_mm') }}</label><input type="number" v-model.number="cfg.height_mm" min="10" max="500" /></div>
           </div>
         </div>
 
         <!-- Colors -->
         <div class="card">
-          <h3 class="cfg-h">🎨 Farben</h3>
+          <h3 class="cfg-h">🎨 {{ t('label.colors') }}</h3>
           <div class="flex flex-wrap gap-1.5 mb-3">
             <button v-for="p in COLOR_PRESETS" :key="p.label"
               class="px-2 py-1 rounded text-xs border-2 font-medium"
@@ -403,13 +406,13 @@ function sexNotation(sex) {
             </button>
           </div>
           <div class="grid grid-cols-2 gap-3">
-            <div><label>Hintergrund</label>
+            <div><label>{{ t('label.bg') }}</label>
               <div class="flex gap-2"><input type="color" v-model="cfg.bg_color" class="color-sw" /><input v-model="cfg.bg_color" class="flex-1 text-xs" /></div>
             </div>
-            <div><label>Text</label>
+            <div><label>{{ t('label.text_color') }}</label>
               <div class="flex gap-2"><input type="color" v-model="cfg.text_color" class="color-sw" /><input v-model="cfg.text_color" class="flex-1 text-xs" /></div>
             </div>
-            <div><label>Akzent</label>
+            <div><label>{{ t('label.accent') }}</label>
               <div class="flex gap-2"><input type="color" v-model="cfg.accent_color" class="color-sw" /><input v-model="cfg.accent_color" class="flex-1 text-xs" /></div>
             </div>
             <div>
@@ -425,15 +428,15 @@ function sexNotation(sex) {
 
         <!-- Content -->
         <div class="card">
-          <h3 class="cfg-h">📝 Inhalt</h3>
+          <h3 class="cfg-h">📝 {{ t('label.content') }}</h3>
 
           <!-- Foto -->
           <div class="flex items-center gap-3 mb-3 p-2 bg-surface-600 rounded-lg">
             <input type="checkbox" v-model="cfg.show_photo" class="w-4 h-4" />
             <div>
-              <span class="text-sm text-slate-300 font-medium">📷 Tierfoto anzeigen</span>
-              <p v-if="!animal?.photo_url" class="text-xs text-yellow-500 mt-0.5">Kein Foto beim Tier hinterlegt</p>
-              <p v-else class="text-xs text-slate-500 mt-0.5">Linke Seite des Schildes</p>
+              <span class="text-sm text-slate-300 font-medium">📷 {{ t('label.show_photo') }}</span>
+              <p v-if="!animal?.photo_url" class="text-xs text-yellow-500 mt-0.5">{{ t('label.no_photo') }}</p>
+              <p v-else class="text-xs text-slate-500 mt-0.5">{{ t('label.photo_hint') }}</p>
             </div>
           </div>
 
@@ -446,7 +449,7 @@ function sexNotation(sex) {
 
           <!-- Field checkboxes -->
           <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 mb-3">
-            <label v-for="[k,l] in [['show_name','Name'],['show_species','Wiss. Name'],['show_morph','Morph'],['show_sex','Geschlecht'],['show_dob','Geburtsdatum'],['show_weight','Gewicht']]"
+            <label v-for="[k,l] in [['show_name', t('animal.name')],['show_species', t('animal.species')],['show_morph', t('animal.morph')],['show_sex', t('animal.sex')],['show_dob', t('animal.dob')],['show_weight', t('animal.weight')]]"
               :key="k" class="flex items-center gap-2 text-sm cursor-pointer mb-0">
               <input type="checkbox" v-model="cfg[k]" class="w-3.5 h-3.5" />{{ l }}
             </label>
@@ -456,7 +459,7 @@ function sexNotation(sex) {
           <div class="border-t border-surface-500 pt-3 mb-3">
             <p class="text-xs text-slate-500 mb-2">Haltungsbedingungen:</p>
             <div class="grid grid-cols-2 gap-x-4 gap-y-1.5">
-              <label v-for="[k,l] in [['show_temp','🌡 Temperatur'],['show_humidity','💧 Luftfeuchtigkeit'],['show_terrarium','📦 Terrarium'],['show_substrate','🌱 Substrat'],['show_uv','☀ UV']]"
+              <label v-for="[k,l] in [['show_temp',t('animal.temp_day').split(' ')[0] + ' ' + t('animal.temp_day').split(' ')[1] || '🌡'],['show_humidity','💧 ' + t('animal.humidity_min').split(' ')[0]],['show_terrarium','📦 ' + t('animal.terrarium')],['show_substrate','🌱 ' + t('animal.substrate')],['show_uv','☀ UV']]"
                 :key="k" class="flex items-center gap-2 text-sm cursor-pointer mb-0">
                 <input type="checkbox" v-model="cfg[k]" class="w-3.5 h-3.5" />{{ l }}
               </label>
@@ -464,8 +467,8 @@ function sexNotation(sex) {
           </div>
 
           <div class="space-y-2">
-            <div><label>Eigene Zeile 1</label><input v-model="cfg.custom_line1" placeholder="z.B. Züchter…" /></div>
-            <div><label>Eigene Zeile 2</label><input v-model="cfg.custom_line2" placeholder="z.B. Saison 2025" /></div>
+            <div><label>{{ t('label.custom_line1') }}</label><input v-model="cfg.custom_line1" placeholder="z.B. Breeder…" /></div>
+            <div><label>{{ t('label.custom_line2') }}</label><input v-model="cfg.custom_line2" placeholder="z.B. Saison 2025" /></div>
           </div>
         </div>
 
@@ -475,14 +478,14 @@ function sexNotation(sex) {
             <h3 class="cfg-h !mb-0">📷 QR-Code</h3>
             <label class="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" v-model="cfg.qr_enabled" class="w-4 h-4" />
-              <span class="text-sm">Aktiv</span>
+              <span class="text-sm">{{ t('common.yes') }}</span>
             </label>
           </div>
           <div v-if="cfg.qr_enabled" class="space-y-3">
             <div>
-              <label>Öffnen in</label>
+              <label>{{ t('label.qr_target') }}</label>
               <div class="flex gap-2 mt-1">
-                <button v-for="[val, label] in [['browser','🌐 Browser'],['ha_app','📱 HA App'],['custom','✏ Eigener Link']]"
+                <button v-for="[val, label] in [['browser',t('label.qr_browser')],['ha_app',t('label.qr_ha_app')],['custom',t('label.qr_custom')]]"
                         :key="val" type="button"
                         class="flex-1 py-1.5 rounded-lg text-xs font-medium border transition-all"
                         :class="cfg.qr_target === val
@@ -493,14 +496,14 @@ function sexNotation(sex) {
                 </button>
               </div>
               <p class="text-xs text-slate-600 mt-1.5">
-                <template v-if="cfg.qr_target === 'browser'">Öffnet die Tier-Seite im Browser</template>
+                <template v-if="cfg.qr_target === 'browser'">{{ t('label.qr_browser_hint') }}</template>
                 <template v-else-if="cfg.qr_target === 'ha_app'">Öffnet dieses Tier direkt in der HA Companion App</template>
-                <template v-else>Beliebigen Link oder Text eintragen</template>
+                <template v-else>{{ t('label.qr_custom_hint') }}</template>
               </p>
             </div>
             <div v-if="cfg.qr_target === 'custom'">
-              <label>Inhalt</label>
-              <input v-model="cfg.qr_content" placeholder="https://… oder beliebiger Text" />
+              <label>{{ t('label.qr_content') }}</label>
+              <input v-model="cfg.qr_content" :placeholder="t('label.qr_placeholder')" />
             </div>
             <div v-else class="bg-surface-600 rounded-lg px-3 py-2 text-xs text-slate-400 font-mono break-all">
               {{ cfg.qr_content }}

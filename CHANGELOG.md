@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.2.2] – 2025-06-04
+
+### Fixed
+- Animal detail page still showing "Alter" instead of "Age" when UI language set to English
+- Label generator (sign creator) was not translated — all UI strings now fully localised (size presets, colour themes, content checkboxes, QR options, resolution selector)
+- Several remaining untranslated strings in animal detail (feeding reminder label, blue phase field, tab entry counts, form buttons)
+
+---
+
 ## [1.2.1] – 2025-06-03
 
 ### Changed
