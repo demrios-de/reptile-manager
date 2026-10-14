@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from .. import models, schemas, auth
 from ..database import get_db
+from ..access import scope_by_animal, get_animal_or_404
 from ..ha_client import notify_ha
 
 router = APIRouter()
@@ -14,7 +15,8 @@ def _enrich(s: models.Shedding, db: Session) -> schemas.SheddingResponse:
         animal_name=animal.name if animal else None,
     )
 
-@router.get("/", response_model=List[schemas.SheddingResponse])
+@router.get("", response_model=List[schemas.SheddingResponse])
+@router.get("/", response_model=List[schemas.SheddingResponse], include_in_schema=False)
 def list_sheddings(
     skip: int = 0,
     limit: int = 100,
@@ -22,21 +24,20 @@ def list_sheddings(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user),
 ):
-    q = db.query(models.Shedding)
+    q = scope_by_animal(db.query(models.Shedding), models.Shedding.animal_id, db, current_user)
     if animal_id:
         q = q.filter(models.Shedding.animal_id == animal_id)
     sheddings = q.order_by(models.Shedding.date.desc()).offset(skip).limit(limit).all()
     return [_enrich(s, db) for s in sheddings]
 
-@router.post("/", response_model=schemas.SheddingResponse, status_code=201)
+@router.post("", response_model=schemas.SheddingResponse, status_code=201)
+@router.post("/", response_model=schemas.SheddingResponse, status_code=201, include_in_schema=False)
 async def create_shedding(
     data: schemas.SheddingCreate,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user),
 ):
-    animal = db.query(models.Animal).filter(models.Animal.id == data.animal_id).first()
-    if not animal:
-        raise HTTPException(404, "Animal not found")
+    animal = get_animal_or_404(db, data.animal_id, current_user)
 
     shedding = models.Shedding(**data.model_dump())
     db.add(shedding)
@@ -44,7 +45,7 @@ async def create_shedding(
     db.refresh(shedding)
 
     ha_cfg = db.query(models.HAConfig).first()
-    if ha_cfg and ha_cfg.enabled and ha_cfg.notify_shedding:
+    if ha_cfg and (ha_cfg.enabled or ha_cfg.entity_sync is not False) and ha_cfg.notify_shedding:
         await notify_ha(
             ha_cfg,
             "reptile_shedding",
@@ -69,7 +70,11 @@ def update_shedding(
     shedding = db.query(models.Shedding).filter(models.Shedding.id == shedding_id).first()
     if not shedding:
         raise HTTPException(404, "Shedding not found")
-    for field, value in data.model_dump(exclude_unset=True).items():
+    get_animal_or_404(db, shedding.animal_id, current_user)
+    changes = data.model_dump(exclude_unset=True)
+    if changes.get("animal_id") is not None:
+        get_animal_or_404(db, changes["animal_id"], current_user)
+    for field, value in changes.items():
         setattr(shedding, field, value)
     db.commit()
     db.refresh(shedding)
@@ -84,5 +89,6 @@ def delete_shedding(
     shedding = db.query(models.Shedding).filter(models.Shedding.id == shedding_id).first()
     if not shedding:
         raise HTTPException(404, "Shedding not found")
+    get_animal_or_404(db, shedding.animal_id, current_user)
     db.delete(shedding)
     db.commit()

@@ -1,6 +1,7 @@
 import os
 from datetime import datetime, timedelta, timezone
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Request
+import asyncio
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
@@ -9,8 +10,10 @@ from sqlalchemy.orm import Session
 from .database import engine, get_db
 from .database import Base
 from . import models, schemas, auth
+from .access import scope_animals, scope_by_animal
+from . import ha_sync
 from .config import settings
-from .routers import animals, feedings, sheddings, breeding, custom_fields, ha, export
+from .routers import animals, feedings, sheddings, breeding, custom_fields, ha, export, users
 
 UPLOAD_DIR = os.environ.get("UPLOAD_DIR", "/app/uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -37,6 +40,19 @@ app.add_middleware(
 
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
+# Any successful change to husbandry data → push to Home Assistant (debounced)
+_SYNC_PATHS = ("/api/animals", "/api/feedings", "/api/sheddings", "/api/breeding",
+               "/api/custom-fields", "/api/groups", "/api/ha/config")
+
+@app.middleware("http")
+async def ha_sync_on_change(request: Request, call_next):
+    response = await call_next(request)
+    if (request.method in ("POST", "PUT", "PATCH", "DELETE")
+            and response.status_code < 400
+            and request.url.path.startswith(_SYNC_PATHS)):
+        ha_sync.schedule_sync()
+    return response
+
 app.include_router(animals.router,       prefix="/api/animals",       tags=["Animals"])
 app.include_router(feedings.router,      prefix="/api/feedings",      tags=["Feedings"])
 app.include_router(sheddings.router,     prefix="/api/sheddings",     tags=["Sheddings"])
@@ -44,6 +60,8 @@ app.include_router(breeding.router,      prefix="/api/breeding",      tags=["Bre
 app.include_router(custom_fields.router, prefix="/api/custom-fields", tags=["Custom Fields"])
 app.include_router(ha.router,            prefix="/api/ha",            tags=["Home Assistant"])
 app.include_router(export.router,        prefix="/api/export",        tags=["export"])
+app.include_router(users.users_router,   prefix="/api/users",         tags=["Users"])
+app.include_router(users.groups_router,  prefix="/api/groups",        tags=["Groups"])
 
 @app.on_event("startup")
 async def startup_event():
@@ -66,6 +84,7 @@ async def startup_event():
                 ("substrate",     "VARCHAR(200)"),
                 ("uv_required",   "BOOLEAN"),
                 ("lighting_hours","INTEGER"),
+                ("group_id",      "INTEGER REFERENCES groups(id) ON DELETE SET NULL"),
             ]
             for col, typedef in migrations:
                 if col not in cols:
@@ -86,12 +105,14 @@ async def startup_event():
                 ("breeder_street",   "VARCHAR(200)"),
                 ("breeder_zip_city", "VARCHAR(100)"),
                 ("breeder_phone",    "VARCHAR(50)"),
+                ("entity_sync",      "BOOLEAN DEFAULT 1"),
             ]:
                 if col not in ha_cols:
                     conn.execute(text(f"ALTER TABLE ha_config ADD COLUMN {col} {typedef}"))
             conn.commit()
         except Exception:
             pass
+    asyncio.get_running_loop().create_task(ha_sync.periodic_loop())
     db = next(get_db())
     try:
         if db.query(models.User).count() == 0:
@@ -132,6 +153,19 @@ async def login(
 async def get_me(current_user: models.User = Depends(auth.get_current_user)):
     return current_user
 
+@app.post("/api/auth/change-password", status_code=204, tags=["Auth"])
+def change_password(
+    data: schemas.PasswordChange,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
+    if not auth.verify_password(data.current_password, current_user.hashed_password):
+        raise HTTPException(400, "Current password is incorrect")
+    if len(data.new_password) < 6:
+        raise HTTPException(400, "Password must be at least 6 characters")
+    current_user.hashed_password = auth.get_password_hash(data.new_password)
+    db.commit()
+
 # ── Dashboard ─────────────────────────────────────────────────────────────────
 
 @app.get("/api/dashboard", response_model=schemas.DashboardStats, tags=["Dashboard"])
@@ -143,19 +177,23 @@ async def dashboard(
     month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     week_ago = now - timedelta(days=7)
 
-    total_animals = db.query(models.Animal).count()
-    active_animals = db.query(models.Animal).filter(models.Animal.is_active.is_(True)).count()
-    total_feedings = db.query(models.Feeding).count()
-    total_sheddings = db.query(models.Shedding).count()
-    feedings_this_month = db.query(models.Feeding).filter(models.Feeding.date >= month_start).count()
-    sheddings_this_month = db.query(models.Shedding).filter(models.Shedding.date >= month_start).count()
+    u = current_user
+    A = lambda: scope_animals(db.query(models.Animal), u)
+    F = lambda: scope_by_animal(db.query(models.Feeding), models.Feeding.animal_id, db, u)
+    S = lambda: scope_by_animal(db.query(models.Shedding), models.Shedding.animal_id, db, u)
+    total_animals = A().count()
+    active_animals = A().filter(models.Animal.is_active.is_(True)).count()
+    total_feedings = F().count()
+    total_sheddings = S().count()
+    feedings_this_month = F().filter(models.Feeding.date >= month_start).count()
+    sheddings_this_month = S().filter(models.Shedding.date >= month_start).count()
 
     # Per-animal feeding check (respects reminder_enabled + per-animal threshold)
     ha_cfg = db.query(models.HAConfig).first()
     global_threshold = ha_cfg.feeding_reminder_days if ha_cfg else 7
 
     active_animals_list = (
-        db.query(models.Animal).filter(models.Animal.is_active.is_(True)).all()
+        A().filter(models.Animal.is_active.is_(True)).all()
     )
 
     animals_needing: list[schemas.AnimalNeedingFeeding] = []
@@ -190,10 +228,10 @@ async def dashboard(
             ))
 
     raw_feedings = (
-        db.query(models.Feeding).order_by(models.Feeding.date.desc()).limit(8).all()
+        F().order_by(models.Feeding.date.desc()).limit(8).all()
     )
     raw_sheddings = (
-        db.query(models.Shedding).order_by(models.Shedding.date.desc()).limit(8).all()
+        S().order_by(models.Shedding.date.desc()).limit(8).all()
     )
 
     def enrich_feeding(f):

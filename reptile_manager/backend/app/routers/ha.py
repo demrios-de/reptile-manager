@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from .. import models, schemas, auth
 from ..database import get_db
+from ..access import require_admin
 from ..ha_client import test_ha_connection, push_sensor_state
 
 router = APIRouter()
@@ -24,7 +25,7 @@ def get_config(
 def update_config(
     data: schemas.HAConfigUpdate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth.get_current_user),
+    current_user: models.User = Depends(require_admin),
 ):
     cfg = db.query(models.HAConfig).first()
     if not cfg:
@@ -39,7 +40,7 @@ def update_config(
 @router.post("/test")
 async def test_connection(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth.get_current_user),
+    current_user: models.User = Depends(require_admin),
 ):
     cfg = db.query(models.HAConfig).first()
     if not cfg:
@@ -139,41 +140,17 @@ def get_sensors(db: Session = Depends(get_db)):
 @router.post("/sync")
 async def sync_to_ha(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth.get_current_user),
+    current_user: models.User = Depends(require_admin),
 ):
-    """Push each animal's state as a HA sensor entity."""
-    cfg = db.query(models.HAConfig).first()
-    if not cfg or not cfg.enabled:
-        raise HTTPException(400, "HA integration not enabled")
+    """Push every animal as a sensor entity to Home Assistant right now."""
+    from ..ha_sync import sync_now
+    result = await sync_now()
+    if result.get("ok") is False:
+        raise HTTPException(502, result.get("error") or "Sync failed")
+    return result
 
-    now = datetime.now(timezone.utc)
-    animals = db.query(models.Animal).filter(models.Animal.is_active.is_(True)).all()
-    results = []
 
-    for a in animals:
-        last_feeding = (
-            db.query(models.Feeding)
-            .filter(models.Feeding.animal_id == a.id, models.Feeding.accepted.is_(True))
-            .order_by(models.Feeding.date.desc())
-            .first()
-        )
-        days = None
-        if last_feeding:
-            d = last_feeding.date
-            if d.tzinfo is None:
-                d = d.replace(tzinfo=timezone.utc)
-            days = (now - d).days
-
-        entity_id = f"sensor.reptile_{a.name.lower().replace(' ', '_')}"
-        state = str(days) if days is not None else "unknown"
-        attrs = {
-            "friendly_name": f"{a.name} – days since feeding",
-            "unit_of_measurement": "days",
-            "species": a.species,
-            "morph": a.morph,
-            "weight_g": a.weight_g,
-        }
-        ok = await push_sensor_state(cfg, entity_id, state, attrs)
-        results.append({"entity_id": entity_id, "success": ok})
-
-    return {"synced": results}
+@router.get("/sync-status")
+def sync_status(current_user: models.User = Depends(auth.get_current_user)):
+    from ..ha_sync import status
+    return status
